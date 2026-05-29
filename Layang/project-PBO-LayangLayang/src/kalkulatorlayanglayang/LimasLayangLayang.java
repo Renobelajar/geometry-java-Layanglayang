@@ -1,135 +1,51 @@
 package kalkulatorlayanglayang;
 
 /**
- * Kelas LimasTrapesium - bangun ruang limas beralas trapesium
-
- ✅ PEWARISAN    - mewarisi Layanglayang (mendapat hitungLuas & hitungKeliling)
- * ✅ POLIMORFISME - override hitungVolume dan hitungLuasPermukaan
- * ✅ MULTITHREADING - setiap perhitungan dijalankan di thread terpisah
+ * LIMAS LAYANG-LAYANG
+ * - Alas berbentuk layang-layang
+ * - Volume = 1/3 × Luas Alas × Tinggi Limas
+ * - Luas Permukaan = Luas Alas + Jumlah 4 sisi tegak (segitiga)
  */
-public class LimasTrapesium extends Layanglayang implements Geometri3D {
-
-    private double tinggiLimas;       // tinggi limas dari alas ke puncak
-    private double hasilVolume;
-    private double hasilLuasPermukaan;
-
-    // ✅ OVERLOADING - konstruktor kosong (tanpa parameter)
-    public LimasTrapesium() {
-        super(); // panggil konstruktor Layanglayang kosong
-        this.tinggiLimas = 0;
-    }
-
-    // ✅ OVERLOADING - konstruktor dengan parameter lengkap
-    public LimasTrapesium(double atas, double bawah, double tinggi,
-                          double kiri, double kanan, double tinggiLimas) {
-        super(atas, bawah, tinggi, kiri, kanan); // panggil konstruktor Layanglayang berparameter
+public class LimasLayangLayang extends LayangLayang implements Geometri3D, Runnable {
+    public double tinggiLimas;
+    public double volume;
+    public double luasPermukaan;
+    
+    // Constructor
+    public LimasLayangLayang(double d1, double d2, double sisiPendek, double sisiPanjang, double tinggiLimas) {
+        super(d1, d2, sisiPendek, sisiPanjang);
         this.tinggiLimas = tinggiLimas;
     }
-
-    // ======================== GETTER & SETTER ========================
-
-    public double getTinggiLimas()               { return tinggiLimas; }
-    public void setTinggiLimas(double tinggiLimas) { this.tinggiLimas = tinggiLimas; }
-    public double getHasilVolume()               { return hasilVolume; }
-    public double getHasilLuasPermukaan()        { return hasilLuasPermukaan; }
-
-    // ======================== HITUNG VOLUME ========================
-
-    /**
-     * Menghitung volume limas trapesium menggunakan thread terpisah
-     * Rumus: Volume = (1/3) × Luas Alas × Tinggi Limas
-     * ✅ MULTITHREADING - perhitungan dijalankan di thread terpisah
-     * ✅ POLIMORFISME   - override dari interface Geometri3D
-     */
+    
     @Override
     public double hitungVolume() {
-        // Hitung luas alas terlebih dahulu (mewarisi dari Layanglayang)
-        double luasAlas = hitungLuas(); // luas alas trapesium dari kelas induk
-
-        // Buat thread untuk menghitung volume limas
-        Thread threadVolume = new Thread(() -> {
-            double sepertiga    = luasAlas / 3;            // sepertiga dari luas alas
-            hasilVolume         = sepertiga * tinggiLimas; // kalikan dengan tinggi limas
-        });
-
-        threadVolume.start(); // mulai thread
-
-        try {
-            threadVolume.join(); // tunggu thread selesai
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            System.out.println("Thread volume limas terganggu: " + e.getMessage());
-        }
-
-        return hasilVolume;
+        double luasAlas = super.hitungLuas();
+        volume = (1.0/3.0) * luasAlas * tinggiLimas;
+        return volume;
     }
-
-    // ======================== HITUNG LUAS PERMUKAAN ========================
-
-    /**
-     * Menghitung luas permukaan limas trapesium menggunakan thread terpisah
-     *
-     * Limas trapesium memiliki:
-     *   - 1 alas berbentuk trapesium
-     *   - 4 sisi tegak berbentuk segitiga
-     *
-     * Rumus sisi tegak: setiap sisi = 1/2 × panjang sisi alas × tinggi segitiga tegak
-     * Tinggi segitiga tegak (apotema) ≈ sqrt(tinggiLimas² + (selisihSisi/2)²)
-     *
-     * ✅ MULTITHREADING - perhitungan dijalankan di thread terpisah
-     * ✅ POLIMORFISME   - override dari interface Geometri3D
-     */
+    
     @Override
     public double hitungLuasPermukaan() {
-        // Ambil nilai sisi dari getter (warisan Layanglayang)
-        double a      = getAtas();
-        double b      = getBawah();
-        double t      = getTinggi();  // tinggi trapesium (alas)
-        double kiri   = getKiri();
-        double kanan  = getKanan();
-        double luasAlas = hitungLuas(); // luas alas trapesium
-
-        // Buat thread untuk menghitung luas permukaan limas
-        Thread threadLP = new Thread(() -> {
-            // Hitung apotema (tinggi sisi tegak) untuk masing-masing sisi
-            // Apotema sisi depan (sisi atas trapesium)
-            double apotemaAtas  = Math.sqrt((tinggiLimas * tinggiLimas) + (a / 2) * (a / 2));
-            // Apotema sisi belakang (sisi bawah trapesium)
-            double apotemaBawah = Math.sqrt((tinggiLimas * tinggiLimas) + (b / 2) * (b / 2));
-            // Apotema sisi kiri (sisi miring kiri trapesium)
-            double apotemaKiri  = Math.sqrt((tinggiLimas * tinggiLimas) + (kiri / 2) * (kiri / 2));
-            // Apotema sisi kanan (sisi miring kanan trapesium)
-            double apotemaKanan = Math.sqrt((tinggiLimas * tinggiLimas) + (kanan / 2) * (kanan / 2));
-
-            // Luas masing-masing sisi segitiga tegak = 1/2 × alas × apotema
-            double luasSisiAtas  = 0.5 * a     * apotemaAtas;
-            double luasSisiBawah = 0.5 * b     * apotemaBawah;
-            double luasSisiKiri  = 0.5 * kiri  * apotemaKiri;
-            double luasSisiKanan = 0.5 * kanan * apotemaKanan;
-
-            // Total luas permukaan = luas alas + semua sisi tegak
-            double totalSisiTegak = luasSisiAtas + luasSisiBawah + luasSisiKiri + luasSisiKanan;
-            hasilLuasPermukaan    = luasAlas + totalSisiTegak;
-        });
-
-        threadLP.start(); // mulai thread
-
-        try {
-            threadLP.join(); // tunggu thread selesai
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            System.out.println("Thread luas permukaan limas terganggu: " + e.getMessage());
-        }
-
-        return hasilLuasPermukaan;
+        double luasAlas = super.hitungLuas();
+        double kelilingAlas = super.hitungKeliling();
+        
+        // Tinggi sisi tegak (apotema) untuk limas layang-layang
+        // Rata-rata sisi alas = kelilingAlas / 4
+        double rataSisi = kelilingAlas / 4;
+        double tinggiSisiTegak = Math.sqrt((tinggiLimas * tinggiLimas) + (rataSisi/2)*(rataSisi/2));
+        
+        // Luas 4 sisi tegak = 1/2 × keliling × tinggi sisi tegak
+        double luasSisiTegak = 0.5 * kelilingAlas * tinggiSisiTegak;
+        luasPermukaan = luasAlas + luasSisiTegak;
+        return luasPermukaan;
     }
-
-    // ======================== TO STRING ========================
-
+    
     @Override
-    public String toString() {
-        return String.format("LimasTrapesium[atas=%.2f, bawah=%.2f, tinggi=%.2f, " +
-                "kiri=%.2f, kanan=%.2f, tinggiLimas=%.2f]",
-                getAtas(), getBawah(), getTinggi(), getKiri(), getKanan(), tinggiLimas);
+    public void run() {
+        hitungLuas();
+        hitungKeliling();
+        hitungVolume();
+        hitungLuasPermukaan();
+        System.out.println("Thread LimasLayanglayang selesai");
     }
 }
