@@ -228,14 +228,18 @@ public class KalkulatorLayangLayangGUI extends JFrame {
     }
     
     private double getDouble(JTextField tf) {
-        try {
-            String text = tf.getText().trim();
-            if (text.isEmpty()) return 0;
-            return Double.parseDouble(text);
-        } catch (NumberFormatException e) {
-            return 0;
-        }
+    try {
+        String text = tf.getText().trim();
+        if (text.isEmpty()) return 0;
+        
+        // SOLUSI: Mengubah karakter koma (,) menjadi titik (.) sebelum di-parse
+        text = text.replace(',', '.');
+        
+        return Double.parseDouble(text);
+    } catch (NumberFormatException e) {
+        return 0;
     }
+}
     
     private void hitung() {
         double d1 = getDouble(tfD1);
