@@ -32,5 +32,3 @@ Perimeter = 2 × (side_a + side_b)
 - User Input Processing
 - Mathematical Operations
 
-## Author
-Reno
